@@ -8,6 +8,8 @@ import re
 from urllib.parse import urljoin
 import generate_image
 import generate_pdf
+import random
+import time
 
 user_data_store = {}
 
@@ -31,9 +33,42 @@ def get_final_score(url):
         # URL को साफ़ करें
         clean_url = url.strip().replace('//per', '/per').split('#')[0]
         
-        response = session.get(clean_url, headers=headers, timeout=30)
-        response.encoding = 'utf-8'
+        # --- PROXY JUGAD ---
+        # ये फ्री प्रॉक्सी हैं, अगर ये काम न करें तो आप इंटरनेट से नए 'Indian HTTP Proxy' निकाल कर यहाँ डाल सकते हैं।
+        indian_proxies = [
+            'http://43.255.45.62:80',
+            'http://117.204.148.243:8080',
+            'http://103.111.96.2:80',
+            'http://103.149.20.144:80'
+        ]
+        
+        response = None
+        try:
+            # 1. पहले बिना प्रॉक्सी के कोशिश करें
+            response = session.get(clean_url, headers=headers, timeout=10)
+            
+            # अगर रेलवे की साइट ने ब्लॉक (451/403) कर दिया तो प्रॉक्सी यूज़ करें
+            if response.status_code in [403, 451]:
+                print(f"⚠️ Direct access blocked ({response.status_code}). Trying Proxy...")
+                raise requests.RequestException("Blocked")
+                
+        except (requests.RequestException, Exception):
+            # 2. प्रॉक्सी के साथ कोशिश करें
+            random.shuffle(indian_proxies)
+            for proxy in indian_proxies:
+                try:
+                    proxies_dict = {"http": proxy, "https": proxy}
+                    print(f"🔄 Trying Proxy: {proxy}")
+                    response = session.get(clean_url, headers=headers, proxies=proxies_dict, timeout=15)
+                    if response.status_code == 200:
+                        break
+                except:
+                    continue
+        
+        if not response:
+            return "❌ Error: रेलवे की वेबसाइट से संपर्क नहीं हो पा रहा है। (Network Issues)", None
 
+        response.encoding = 'utf-8'
         if response.status_code != 200:
             return f"❌ Error: वेबसाइट ने जवाब नहीं दिया। (Code: {response.status_code})", None
 
