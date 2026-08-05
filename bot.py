@@ -14,7 +14,7 @@ import time
 user_data_store = {}
 
 # आप Replit में Secrets (Environment Variables) का इस्तेमाल भी कर सकते हैं
-API_TOKEN = os.environ.get('BOT_TOKEN', '8380156635:AAH_jCEH_bGUbUsmWmX0ZrUWP0T5ZC4vRnE')
+API_TOKEN = os.environ.get('BOT_TOKEN', '8864528339:AAE8gplBA9fw65F62XIvxdemKz-yfN_B0Ms')
 
 bot = telebot.TeleBot(API_TOKEN)
 
